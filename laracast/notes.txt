@@ -1,0 +1,9 @@
+# Section2 
+
+---Make a PHP Router---
+--> query string (ex "/contact?foo=bar")
+
+parse_url();
+array_key_exists($uri,$array);
+http_response_code(404);
+"views/{$code}.php" --> string içinde value yazmak istersek.
