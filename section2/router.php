@@ -1,9 +1,9 @@
 <?php
 $uri = parse_url($_SERVER['REQUEST_URI'])['path'];
 $routes = [
-    '//laracast/section2/' => 'controllers/index.php',
-    '/laracast/section2/about' => 'controllers/about.php',
-    '/laracast/section2/contact' => 'controllers/contact.php',
+    '/section2/' => 'controllers/index.php',
+    '/section2/about' => 'controllers/about.php',
+    '/section2/contact' => 'controllers/contact.php',
 ];
 
 function routeToController($uri, $routes) {
