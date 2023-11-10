@@ -11,4 +11,8 @@ http_response_code(404);
 $person->name="John Doe"; nesneye attribute seklinde tanimlanir. degeri almak istersek $person->name seklinde cagirabiliriz.
 
 //connect to our MySQL database.
-$dsn = "mysql:host=localhost;port=3306;dbname=myapp;charset=utf8mb4";	
+$dsn = "mysql:host=localhost;port=3306;dbname=myapp;charset=utf8mb4";
+
+//constructor
+
+public function __construct(){};	
