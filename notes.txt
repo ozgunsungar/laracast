@@ -16,3 +16,17 @@ $dsn = "mysql:host=localhost;port=3306;dbname=myapp;charset=utf8mb4";
 //constructor
 
 public function __construct(){};	
+
+
+//SQL
+SQL query içine asla inline olarak user tarafından
+alınan datayı yazma. ;drop table users; yapabilir.
+Bunu engellemek için:
+$id = $_GET['id'];
+$query = "select * from posts where id = ?"
+$posts = $db->query($query,[$id])->fetch(); yap!!
+ya da
+$query = "select * from posts where id = :id(herhangi bi isim)";
+$posts = $db->query($query,[:id=>$id])->fetch();
+
+
