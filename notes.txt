@@ -30,3 +30,33 @@ $query = "select * from posts where id = :id(herhangi bi isim)";
 $posts = $db->query($query,[:id=>$id])->fetch();
 
 
+-------------------SECTION 3-------------------
+<textarea name="body"></textarea> --> name vermediğimiz taktirde
+yazılan text query string olarak gelmiyor. Bütün form inputlara name ver!!
+
+--> text area için label lazım. label içindeki for parametresi textarea'nın id'sini istiyor. textarea idsini name ile aynı yap fazladan variable ismi oluşmasın. yani :
+<label for="body"></label>
+<textarea id="body" name="body"></textarea>
+
+--> yukarıdakiler get request sayesinde oluyor. query string üstünden data iletimi oluyor ama POST request yaparsan gizli şekilde yapıyor.
+
+- $_POST global variable ile post ettiğin formdaki texti alabilirsin.
+
+*** plugin form yüklemek için <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+
+** form tagindeki action='#' attributesi requestin nereye gideceğini söyler.
+
+** text'i dbye aktarırken normal bırak ama oluşabilecek sorunları önlemek için dbden okurken htmlspecialchars() fonksiyonunu kullan. Bu sayede text içine yazılan html tagler site tarafından okunmaz.
+
+<?=htmlspecialchar($note['body'])?>
+
+
+textarea içine required parametresi eklersen göndermek için bir şey yazmanı bekler. ama bypass yapılabilir.
+
+textareanın altına bildirim yap.
+<?php if (isset($errors['body])) :?>
+	<p><?= $errors['body']?></p>
+<?php endif;?>
+
+
+--- whem you have a pure function you can make that static
