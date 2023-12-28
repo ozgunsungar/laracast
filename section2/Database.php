@@ -2,6 +2,15 @@
 
 class Database
 {
+    public string $name;
+
+    /**
+     * @return PDO
+     */
+    public function getConnection(): string
+    {
+        return $this->connection;
+    }
     public $connection;
 
     public function __construct($config, $username = 'root', $password = '')
