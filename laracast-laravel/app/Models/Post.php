@@ -9,10 +9,25 @@ class Post extends Model
 {
     use HasFactory;
 
-    protected $guarded=[];
-    public function getRouteKeyName()
+    protected $guarded = [];
+
+    protected $with = ['category', 'author'];
+
+    public function scopeFilter($query,array $filters)//Post::newQıery()->filter()
     {
-        return 'slug';
+        $query->when($filters['search'] ?? false,function ($query,$search){
+            $query
+                ->where('title', 'like', '%' . $search . '%')
+                ->orWhere('excerpt', 'like', '%' . $search . '%');
+        });
+
+        $query->when($filters['category'] ?? false,function ($query,$category){
+            $query
+                ->whereHas('category',fn ($query) =>
+                  $query->where('slug',$category));
+
+        });
+
     }
 
     public function category()
@@ -20,7 +35,8 @@ class Post extends Model
         return $this->belongsTo(Category::class);
     }
 
-    public function user(){
-        return $this->belongsTo(User::class);
+    public function author()
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

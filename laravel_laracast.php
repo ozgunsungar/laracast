@@ -197,13 +197,11 @@ ilerde göreceksin.
 blade içinde
 <a href="#">{{$post->category->name}}</a> şeklinde çağırıp göstertebilirsin.
 
-////# N+1 Problem için
-Route::get('/',function(){
-    return view('posts',[
-        'posts'=>Post::with('category')->get()
-])
-})
+////# N+1 Problem için ,,,,, Post.class'a attribute tanımla.
+protected $with=['category','author']; #bu sayede n+1 problemini çözmüş olduk. Her post çağrıldığında kontrol sağlanacak
+
 Post::with('user')->first(); full posts along with the user who wrote it
+foreing keyler hangi tablodaysa onu çağırırken with ile çağır içine foreign key class ismini yaz key yaz.
 
 ----> normalde post tüm postlarda bulunan category kısımları
 Select * From 'categories' where 'categories'.'id' = '1' limit 1 her post için tekrar çağıracak bunu id değerleri değişiyor.
@@ -211,5 +209,182 @@ ama with ile yazdığında
 Select * From 'categories' where 'categories'.id in (1,2,3) oluyor.
 
 php artisan migrate:fresh --seed
+
+///Factory oluşturmak
+factory classında default değerler tanımlıyorsun ancak bunları override edip ezebiliyorsun
+return [
+'category_id'=>Category::factory()->create()->id, --->> return edilirken ayn ızamanda categoryden de factory çalışacak
+'title'=>fake()->sentence,
+]; şeklinde tanımlayabilirsin
+
+defaul değeri ezme işlemi ise şu şekilde oluyor:
+
+$user = User::factory()->create([
+'name'=>'John Doe'
+]);
+
+####Yukarıda user istediğimiz isimle oluştu.Diğer sütunlar factoryden geldi. Aşağıda ise oluşan postların hepsi
+yukarıdaki user_id kullansın istedik.
+
+Post::factory(5)->create([
+'user_id'=>$user->id
+]);
+
+/// En yeni postu en yukarda göstermek :
+
+return view('posts',[
+'posts'=> Post::latest()->with('category')->get()
+]);
+});
+
+///#### postları author olarak çağıracağız ama tablodu author_id fksi olmadığı için aşağıda 'user_id' diye belirttik.
+
+public function author(){ //user_id olarak arıyor.
+return $this->belongsTo(User::class,'user_id');
+}
+}
+
+                                ******************* Integrate the Design (CSS) : *******************
+** images klasörünü public içine at
+** componentlarda {{$slot}} isteğe bağlı belirtilir. view içinde <x-dosya-ismi/> seklinde cagrildiginde bu tagin
+icine slotu yazabiliriz. acak slot yoksa direkt bu tagi cagirim componenti cekebiliriz.
+
+** componentlar birden fazla kullanılmak için ancak bir kere kullanmak için bile ayırmak istediğin bir şey varsa partial
+olarak ayırabilirsin.
+viewin içine "_dosya-ismi.blade.php" seklinde yazabilirsin.Kullanacagin dosyada @include("partial_adi") seklinde kullanabilirsin.
+
+<x-dosya-ismi/ :post"$post">
+
+****### Component attributes: attribute ve props farklı
+{{$slot}} içeriği belirliyordu. Ancak
+
+@props(['type'])---> // Component dosyasının başındaki bu değer dosyada hangi attributeların kullanılacağını developera göstermek için. Kullanmasan da olur.
+<div class="alert {{ $type }}">
+    {{ $slot }}
+</div> gibi bir kullanım da söz konusu. Burada $type componentın içinde tanımlanmış bir attribute. Componenti çağırırken
+
+<x-alert type="success">
+    Başarılı işlem!
+</x-alert> şeklinde çağırmalıyız ki değeri içine atalım
+
+*****Zamanı yazmak için
+Published <time>{{$post->created_at->diffForHumans()}}</time>
+
+style="grid-column; span 5"
+
+### <x-post-card></x-post-card> içinde attribute tanımlarsan component blade'de aşağıdaki gibi kullanıyorsun.!!!!
+
+<article {{$attributes->merge(['class'=>"transition-colors duration-300 hover:bg-gray-100 border border-black border-opacity-0 hover:border-opacity-5 rounded-xl"])}}
+</article>
+
+    @foreach($posts->skip(1) as $post)
+    <x-post-card :post="$post"
+                 class="{{$loop->iteration < 3 ? 'col-span-3' : 'col-span-2'}}"/>/>
+
+    @endforeach
+##col span kullanımı
+<div class="lg:grid lg:grid-cols-6"> ----> dışarıdaki div'de bu şekilde grid sayısı belirliyorsun sonra altındaki divde
+    ne kadar yer kaplayacağını söylüyorsun.
+    ör :   <div class="col-span-2 ...">04</div></div> gibi
+
+
+    #class içinde
+hover : --> mouse üstüne gelince
+focus : --> tab ya da yön tuşları ile üstüne gelince
+
+htmlde attribute olarak style="display: none " yaparsan ne olursa olsun o kısmı göstermez
+inline-flex
+
+##### Category dropdown menu için js kullanıyoruz alpine.js libraryi githubdan alman gerekebilir. ya da chatgptye sor
+
+###****Alpine.js eklentisi ile dropdown menu yapımı (laracast laravel 34. ders)
+
+<div x-data="{show: false}" @click.away="show=false">
+    <button
+            @click="show = !show"
+            class="py-2 pl-3 pr-9 text-sm font-semibold w-full lg:w-32 text-left flex lg:inline-flex"
+    >
+        {{isset($currentCategory) ? ucwords($currentCategory->name ): 'Categories'}}
+        <svg class="transform -rotate-90 absolute pointer-events-none" style="right: 12px;" width="22"
+             height="22" viewBox="0 0 22 22">
+            <g fill="none" fill-rule="evenodd">
+                <path stroke="#000" stroke-opacity=".012" stroke-width=".5" d="M21 1v20.16H.84V1z">
+                </path>
+                <path fill="#222"
+                      d="M13.854 7.224l-3.847 3.856 3.847 3.856-1.184 1.184-5.04-5.04 5.04-5.04z"></path>
+            </g>
+        </svg>
+    </button>
+    <div x-show="show" class="py-2 absolute bg-gray-100 mt-2 rounded-xl w-full z-50" style="display:none">
+        <a href="/"
+           class="block text-left px-3 text-sm leading-6 hover:bg-blue-500 focus:bg-blue-500 hover:text-white focus:text-white">
+            All
+        </a>
+        @foreach($categories as $category)
+        <a href="/categories/{{$category->slug}}"
+           class="block text-left px-3 text-sm leading-6
+                           hover:bg-blue-500 focus:bg-blue-500 hover:text-white focus:text-white
+                           {{isset($currentCategory) && $currentCategory->id === $category->id ? 'bg-blue-500 text-white' : ''}}
+                           ">
+            {{ucwords($category->name)}}
+        </a>
+        @endforeach
+    </div>
+
+</div>
+
+-Flex kutuları, içerdikleri öğeleri düzenlemek ve hizalamak için kullanılan güçlü bir CSS düzen modelidir.
+-Bir flex konteyneri, içerdiği öğeleri sıralamak ve hizalamak için esnek bir şekilde yapılandırılabilir.
+-Flex konteyneri, display: flex; veya display: inline-flex; olarak stilendirilir.
+-İlk seçenek, blok seviyesi bir yapı oluştururken, ikinci seçenek, satır içi bir yapı oluşturur.
+
+## dropdown yükseklik ayarlama
+class içine ---> overflow-auto max-h-4
+div içine space-y-4 yazarsan childlarına margin atar
+
+value="{{request('search') }}" ---> input içinde yap default value koyuyorsun (headerda css olarak yazıyorsun.)
+
+
+                        ******************* SEARCH : *******************
+**** Messy Way ****
+
+Route::get('/', function () {
+$posts = Post::latest();
+if(request('search')){
+$posts->where('title','like','%'.request('search').'%')
+->orWhere('excerpt','like','%'.request('search').'%');
+}
+
+return view('posts', [
+'posts' => $posts->get(),
+'categories' => Category::all()
+]);
+})->name('home');
+
+**** Cleaner Way (Query Scopes) ****
+--->query scope methodunu eloquent modelin içinde tanımla.
+----> request(['search']) yaparsan key value('search' => 'test') şeklinde array gelir. ama request('search') yaparsan sadece string döner
+[request('search')] yaparsan indexi 0 valuesi string olan çıktıyı key value arrayi alırsın.
+
+
+public function scopeFilter($query,array $filters)---->$query değeri aslında $posts. otomatik(Post::latest() sonucu) olarak geliyor
+{                                                      $filters ise bizim filter() methoduna yolladığımız değer.
+
+$query->when($filters['search'] ?? false,function ($query,$search){---->$search whenin içindeki sorgu kısmı. /false ise query değiştirilmeden aktarılır.
+$query
+->where('title', 'like', '%' . $search . '%')
+->orWhere('excerpt', 'like', '%' . $search . '%');
+});
+
+}
+
+****Önemli****
+bir fonksiyon olsun $posts->filter() şeklinde. -> ile kullandığımız zaman ilk parametresi bir önceki kısımdan otomatik olarak gelir.
+içine yazdığımız ikinci parametre olur.
+
+
+
+
+******************* FILTERING : *******************
 
 
